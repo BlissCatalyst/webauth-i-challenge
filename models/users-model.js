@@ -15,8 +15,10 @@ function findBy(filter) {
   return db('users').where(filter);
 }
 
-function add(newUser) {
-  return findById(db('users').insert(newUser));
+async function add(newUser) {
+  const [id] = await db('users').insert(newUser);  
+
+  return findById(id);
 }
 
 function findById(id) {
