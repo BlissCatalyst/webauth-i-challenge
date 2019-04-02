@@ -48,5 +48,33 @@ server.post('/api/login', async (req, res) => {
   }
 });
 
+// ********** RESTRICTED TO LOGGED IN USERS ********** //
+server.get('/api/users', restricted, async (req, res) => {
+  const users = await Users.find();
+  try {
+    res.status(200).json(users);
+  } catch (err) {
+    res.status(500).json({ message: "server cannot process this right now" });
+  }
+});
+
+async function restricted(req, res, next) {
+  const loggedIn = req.headers;
+  if(loggedIn.username && loggedIn.password) {
+    const user = await Users.findBy({ username: loggedIn.username }).first();
+    try {
+      if(bcrypt.compareSync(loggedIn.password, user.password)) {
+      next();
+      } else {
+      res.status(401).json({ message: "Password is incorrect!" });
+      }
+    } catch (err) {
+      res.status(500).json(err);
+    }  
+  } else {
+    res.status(400).json({ message: "You must put in your username and password if you want to login" });
+  }
+}
+
 const port = process.env.PORT || 5000;
 server.listen(port, () => console.log(`\n** Running on port ${port} **\n`));
